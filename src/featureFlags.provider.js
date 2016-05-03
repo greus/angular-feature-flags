@@ -13,6 +13,10 @@ function FeatureFlags($q, featureFlagOverrides, initialFlags) {
         },
 
         isOn = function(key) {
+            if (!serverFlagCache.hasOwnProperty(key)) {
+                return false;
+            }
+
             return isOverridden(key) ? featureFlagOverrides.get(key) === 'true' : serverFlagCache[key];
         },
 
