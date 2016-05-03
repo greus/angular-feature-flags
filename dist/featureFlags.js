@@ -77,7 +77,7 @@ angular.module('feature-flags').directive('featureFlagOverrides', ['featureFlags
 }]);
 
 angular.module('feature-flags').service('featureFlagOverrides', ['$rootElement', function($rootElement) {
-    var appName = $rootElement.attr('ng-app'),
+    var appName = $rootElement.attr('ng-app') || 'app',
         keyPrefix = 'featureFlags.' + appName + '.',
 
         prefixedKeyFor = function(flagName) {
