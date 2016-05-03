@@ -1,5 +1,5 @@
 /*!
- * Angular Feature Flags v1.0.0
+ * Angular Feature Flags v1.1.0
  *
  * © 2016, Michael Taranto
  */
@@ -139,6 +139,10 @@ function FeatureFlags($q, featureFlagOverrides, initialFlags) {
         },
 
         isOn = function(key) {
+            if (!serverFlagCache.hasOwnProperty(key)) {
+                return false;
+            }
+
             return isOverridden(key) ? featureFlagOverrides.get(key) === 'true' : serverFlagCache[key];
         },
 

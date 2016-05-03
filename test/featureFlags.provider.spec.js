@@ -308,6 +308,30 @@
                     });
                 });
             });
+
+            describe('if the feature does not exist on the server', function() {
+                beforeEach(function() {
+                    $httpBackend.when('GET', 'data/flags.json').respond([]);
+                    featureFlags.set($http.get('data/flags.json'));
+                    $httpBackend.flush();
+                });
+
+                afterEach(function() {
+                    $httpBackend.verifyNoOutstandingExpectation();
+                    $httpBackend.verifyNoOutstandingRequest();
+                });
+
+                describe('and there is a local override to turn it on', function() {
+                    beforeEach(function() {
+                        spyOn(featureFlagOverrides, 'isPresent').andReturn(true);
+                        spyOn(featureFlagOverrides, 'get').andReturn('true');
+                    });
+
+                    it('should report the feature as being off', function() {
+                        expect(featureFlags.isOn('FLAG_KEY')).toBe(false);
+                    });
+                });
+            });
         });
     });
 
