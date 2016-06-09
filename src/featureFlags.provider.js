@@ -17,16 +17,23 @@ function FeatureFlags($q, featureFlagOverrides, initialFlags) {
                 return false;
             }
 
-            return isOverridden(key) ? featureFlagOverrides.get(key) === 'true' : serverFlagCache[key];
+            return serverFlagCache[key].overridable && isOverridden(key) ? featureFlagOverrides.get(key) === 'true' : serverFlagCache[key].active;
         },
 
         isOnByDefault = function(key) {
-            return serverFlagCache[key];
+            if (!serverFlagCache.hasOwnProperty(key)) {
+                return false;
+            }
+
+            return serverFlagCache[key].active;
         },
 
         updateFlagsAndGetAll = function(newFlags) {
             newFlags.forEach(function(flag) {
-                serverFlagCache[flag.key] = flag.active;
+                serverFlagCache[flag.key] = {
+                    active: flag.active,
+                    overridable: flag.overridable
+                };
                 flag.active = isOn(flag.key);
             });
             angular.copy(newFlags, flags);
@@ -59,7 +66,7 @@ function FeatureFlags($q, featureFlagOverrides, initialFlags) {
         },
 
         reset = function(flag) {
-            flag.active = serverFlagCache[flag.key];
+            flag.active = serverFlagCache[flag.key].active;
             featureFlagOverrides.remove(flag.key);
         },
 

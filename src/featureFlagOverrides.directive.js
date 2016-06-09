@@ -13,7 +13,7 @@ angular.module('feature-flags').directive('featureFlagOverrides', function(featu
         },
         template: '<div class="feature-flags">' +
                   '    <h1>Feature Flags</h1>' +
-                  '    <div id="feature-flag--{{flag.key}}" class="feature-flags-flag" ng-repeat="flag in flags">' +
+                  '    <div id="feature-flag--{{flag.key}}" class="feature-flags-flag" ng-repeat="flag in flags | filter:{overridable: true}">' +
                   '        <div class="feature-flags-name">{{flag.name || flag.key}}</div>' +
                   '        <div id="feature-flag--{{flag.key}}--enable" class="feature-flags-switch" ng-click="enable(flag)" ng-class="{\'active\': isOverridden(flag.key) && isOn(flag.key)}">ON</div>' +
                   '        <div id="feature-flag--{{flag.key}}--disable" class="feature-flags-switch" ng-click="disable(flag)" ng-class="{\'active\': isOverridden(flag.key) && !isOn(flag.key)}">OFF</div>' +

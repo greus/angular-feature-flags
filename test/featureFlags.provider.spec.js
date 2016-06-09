@@ -219,8 +219,8 @@
                 expect(featureFlags.isOnByDefault(offFlag.key)).toBe(false);
             });
 
-            it('should return undefined if the key was not loaded by set()', function() {
-                expect(typeof featureFlags.isOnByDefault(undefinedFlag.key)).toBe('undefined');
+            it('should return false if the key was not loaded by set()', function() {
+                expect(featureFlags.isOnByDefault(undefinedFlag.key)).toBe(false);
             });
 
             it('should report feature is on by default when it is even when disabled', function() {
@@ -231,14 +231,14 @@
                 expect(featureFlags.isOnByDefault(offFlagOverridden.key)).toBe(false);
             });
 
-            it('should return undefined if the key was not loaded by set() even when enabled', function() {
-                expect(typeof featureFlags.isOnByDefault(undefinedFlagOverridden.key)).toBe('undefined');
+            it('should return false if the key was not loaded by set() even when enabled', function() {
+                expect(featureFlags.isOnByDefault(undefinedFlagOverridden.key)).toBe(false);
             });
         });
 
-        describe('when I check a feature flags state', function() {
+        describe('when I check a overridable feature flags state', function() {
             describe('if the feature is disabled on the server', function() {
-                var flag = { active: false, key: 'FLAG_KEY' };
+                var flag = { active: false, key: 'FLAG_KEY', overridable: true };
 
                 beforeEach(function() {
                     $httpBackend.when('GET', 'data/flags.json').respond([ flag ]);
@@ -274,7 +274,7 @@
             });
 
             describe('if the feature is enabled on the server', function() {
-                var flag = { active: true, key: 'FLAG_KEY' };
+                var flag = { active: true, key: 'FLAG_KEY', overridable: true };
 
                 beforeEach(function() {
                     $httpBackend.when('GET', 'data/flags.json').respond([ flag ]);
@@ -329,6 +329,80 @@
 
                     it('should report the feature as being off', function() {
                         expect(featureFlags.isOn('FLAG_KEY')).toBe(false);
+                    });
+                });
+            });
+        });
+
+        describe('when I check a non-overridable feature flags state', function() {
+            describe('if the feature is disabled on the server', function() {
+                var flag = { active: false, key: 'FLAG_KEY', overridable: false };
+
+                beforeEach(function() {
+                    $httpBackend.when('GET', 'data/flags.json').respond([ flag ]);
+                    featureFlags.set($http.get('data/flags.json'));
+                    $httpBackend.flush();
+                });
+
+                afterEach(function() {
+                    $httpBackend.verifyNoOutstandingExpectation();
+                    $httpBackend.verifyNoOutstandingRequest();
+                });
+
+                describe('and there is a local override to turn it on', function() {
+                    beforeEach(function() {
+                        spyOn(featureFlagOverrides, 'isPresent').andReturn(true);
+                        spyOn(featureFlagOverrides, 'get').andReturn('true');
+                    });
+
+                    it('should still report the feature as being off', function() {
+                        expect(featureFlags.isOn(flag.key)).toBe(false);
+                    });
+                });
+
+                describe('and there is no local override to turn it on', function() {
+                    beforeEach(function() {
+                        spyOn(featureFlagOverrides, 'isPresent').andReturn(false);
+                    });
+
+                    it('should report the feature as being off', function() {
+                        expect(featureFlags.isOn(flag.key)).toBe(flag.active);
+                    });
+                });
+            });
+
+            describe('if the feature is enabled on the server', function() {
+                var flag = { active: true, key: 'FLAG_KEY', overridable: false };
+
+                beforeEach(function() {
+                    $httpBackend.when('GET', 'data/flags.json').respond([ flag ]);
+                    featureFlags.set($http.get('data/flags.json'));
+                    $httpBackend.flush();
+                });
+
+                afterEach(function() {
+                    $httpBackend.verifyNoOutstandingExpectation();
+                    $httpBackend.verifyNoOutstandingRequest();
+                });
+
+                describe('and there is a local override to turn it off', function() {
+                    beforeEach(function() {
+                        spyOn(featureFlagOverrides, 'isPresent').andReturn(true);
+                        spyOn(featureFlagOverrides, 'get').andReturn('false');
+                    });
+
+                    it('should still report the feature as being on', function() {
+                        expect(featureFlags.isOn(flag.key)).toBe(true);
+                    });
+                });
+
+                describe('and there is no local override to turn it off', function() {
+                    beforeEach(function() {
+                        spyOn(featureFlagOverrides, 'isPresent').andReturn(false);
+                    });
+
+                    it('should report the feature as being on', function() {
+                        expect(featureFlags.isOn(flag.key)).toBe(true);
                     });
                 });
             });
