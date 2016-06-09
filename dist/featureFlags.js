@@ -64,7 +64,7 @@ angular.module('feature-flags').directive('featureFlagOverrides', ['featureFlags
         },
         template: '<div class="feature-flags">' +
                   '    <h1>Feature Flags</h1>' +
-                  '    <div id="feature-flag--{{flag.key}}" class="feature-flags-flag" ng-repeat="flag in flags">' +
+                  '    <div id="feature-flag--{{flag.key}}" class="feature-flags-flag" ng-repeat="flag in flags | filter:{overridable: true}">' +
                   '        <div class="feature-flags-name">{{flag.name || flag.key}}</div>' +
                   '        <div id="feature-flag--{{flag.key}}--enable" class="feature-flags-switch" ng-click="enable(flag)" ng-class="{\'active\': isOverridden(flag.key) && isOn(flag.key)}">ON</div>' +
                   '        <div id="feature-flag--{{flag.key}}--disable" class="feature-flags-switch" ng-click="disable(flag)" ng-class="{\'active\': isOverridden(flag.key) && !isOn(flag.key)}">OFF</div>' +
@@ -143,16 +143,23 @@ function FeatureFlags($q, featureFlagOverrides, initialFlags) {
                 return false;
             }
 
-            return isOverridden(key) ? featureFlagOverrides.get(key) === 'true' : serverFlagCache[key];
+            return serverFlagCache[key].overridable && isOverridden(key) ? featureFlagOverrides.get(key) === 'true' : serverFlagCache[key].active;
         },
 
         isOnByDefault = function(key) {
-            return serverFlagCache[key];
+            if (!serverFlagCache.hasOwnProperty(key)) {
+                return false;
+            }
+
+            return serverFlagCache[key].active;
         },
 
         updateFlagsAndGetAll = function(newFlags) {
             newFlags.forEach(function(flag) {
-                serverFlagCache[flag.key] = flag.active;
+                serverFlagCache[flag.key] = {
+                    active: flag.active,
+                    overridable: flag.overridable
+                };
                 flag.active = isOn(flag.key);
             });
             angular.copy(newFlags, flags);
@@ -185,7 +192,7 @@ function FeatureFlags($q, featureFlagOverrides, initialFlags) {
         },
 
         reset = function(flag) {
-            flag.active = serverFlagCache[flag.key];
+            flag.active = serverFlagCache[flag.key].active;
             featureFlagOverrides.remove(flag.key);
         },
 
