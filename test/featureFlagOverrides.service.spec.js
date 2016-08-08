@@ -88,7 +88,7 @@
         describe('when I have a series of overrides and then clear them', function() {
             beforeEach(function() {
                 spyOn(localStorage, 'removeItem');
-                localStorage.setItem('someOtherData');
+                localStorage.setItem('someOtherData', 'someOtherValue');
                 service.set('FLAG_KEY_1', 'VALUE');
                 service.set('FLAG_KEY_2', 'VALUE');
                 service.set('FLAG_KEY_3', 'VALUE');
